@@ -317,9 +317,11 @@ function countWeekDays(syncDate, prevDate, needleDay) {
     console.log(syncDate+" : "+prevDate+" : "+needleDay);
     let counts = 0;
     let startDate = new Date(+prevDate);
+    startDate.setHours(0, 0, 0, 0);
     let targetDate = new Date(+syncDate);
+    targetDate.setHours(0, 0, 0, 0);
     console.log(startDate);
-    while (startDate <= targetDate) {
+    while (startDate < targetDate) {
         console.log("Uijui!");
         if (startDate.getDay() == needle) {
             counts++;
