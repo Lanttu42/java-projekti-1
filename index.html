@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="fi">
+<head>
+    <meta charset="UTF-8">
+    <!-- Google Font -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@200;400;600;800&display=swap" rel="stylesheet">
+
+    <!-- Google Material Symbols -->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
+    <!-- Bootstrap 5.0 styles -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Oma CSS -->
+    <link rel="stylesheet" type="text/css" href="css/style.css">
+
+    <title>Self Training Director</title>
+
+</head>
+<body>
+<div class="container-fluid">
+    <ul class="nav nav-tabs" role="tablist" >
+        <li class="nav-item">
+          <a class="nav-link active" id="linkTraining" aria-current="Training" href="#" onclick="showPage('page1')"><span class="material-symbols-outlined"> heart_plus</span>Training</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" id="linkSettings" href="#" onclick="showPage('settings')"><span class="material-symbols-outlined">settings</span> Settings</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" id="Plan" href="#" onclick="showPage('plan')"><span class="material-symbols-outlined">quick_reference_all</span> Plan</a>
+        </li>
+    </ul>
+
+    
+    <div id="page1" class="page" style="display: block;">
+        <!-- Content for Page 1 -->
+        <div id="quickstatus"></div>
+        <div class="pie" id="thatpie" style="">60%</div>
+        <div id="planHeader"></div>
+        <div id="doToday"></div>
+        <!--<canvas id="canvas"></canvas>-->
+    </div>
+    <div id="settings" class="page">
+        <!-- Content for Settings -->
+        <h1>Settings</h1>
+        <h2>Personal information</h2>
+        <label for="setStartDate">Starting day:</label> <input type="date" name="setStartDate" id="setStartDate" class="userSetting" disabled>
+        <label for="setName">Your name:</label> <input type="text" name="setName" id="setName" class="userSetting" disabled>
+        <label for="setTarget">Target weight:</label> <input type="text" name="setTarget" id="setTarget" class="userSetting" disabled>
+        <label for="setStart">Starting weight:</label> <input type="text" name="setStart" id="setStart" class="userSetting" disabled>
+        <label for="setAge">Your age:</label> <input type="text" name="setAge" id="setAge" class="userSetting" disabled>
+        <label for="setGender">Your gender:</label> <input type="text" name="setGender" id="setGender" class="userSetting" disabled>
+        <label for="setWaist">Your Waist:</label> <input type="text" name="setWaist" id="setWaist" class="userSetting" disabled>
+        <br><button style="visibility: visible;" id="editPersonal">Edit</button> <button style="visibility: hidden;" id="cancelEdit">Cancel</button> <button style="visibility: hidden;" id="saveEdit">Save</button>
+        <br>
+        <small>This information is saved in your local computer browsing history.</small>
+    </div>
+
+<!-- Edit modaali -->
+<div class="modaledit-container">
+    <div class="modaledit">
+        <!-- Your modal content goes here -->
+    </div>
+</div>
+<!-- End of Edit modaali -->
+
+    <div id="plan" class="page">
+        <!-- The Plans are here -->
+        <div id="plansContainer">
+            <!-- Placeholder for previous plans -->
+        </div>
+        <div class="Planbox" id="planNew">
+            <h3 id="thisPlanName">New plan - Edit to add</h3>
+            <div id="newPlanError"></div>
+            <div>
+                <label for="planName">Plan Name:</label><br>
+                <input type="text" name="planName" id="planName">
+            </div>
+            <label for="planWeekDay">Day of the week:</label>
+           <select name="planWeekDay" id="planWeekDay">
+                <option value="none">Select interval</option>
+                <option value="0">Mondays</option>
+                <option value="1">Tuesdays</option>
+                <option value="2">Wednesdays</option>
+                <option value="3">Thursdays</option>
+                <option value="4">Fridays</option>
+                <option value="5">Saturdays</option>
+                <option value="6">Sundays</option>
+            </select>
+                        <label for="planActive">Active:</label>
+            <input type="checkbox" value="true" name="planActive" id="planActive" checked style="width: 30px;"><br>
+            <label for="planType">Plan type:</label>
+            <select name="planType" id="planType">
+                <option value="noSelection">Select Training mode</option>
+                <option value="bodyBuilding">Body Building</option>
+                <option value="aerobic">Aerobic</option>
+                <option value="rest">Rest</option>
+                <option value="weighting">Weighting</option>
+                
+            </select>
+            
+            <!-- Body Building Fields -->
+            <div id="bodyBuildingFields" style="display: none;">
+                <label for="reps">Reps:</label>
+                <input type="text" name="reps" id="reps"><br>
+                <label for="sets">Sets:</label>
+                <input type="text" name="sets" id="sets">
+            </div>
+            
+            <!-- Aerobic Fields -->
+            <div id="aerobicFields" style="display: none;">
+                <label for="aerobicType">Aerobic Type:</label>
+                <input type="text" name="aerobicType" id="aerobicType"><br>
+                <label for="aerobicMetric">Aerobic Metric:</label>
+                <input type="text" name="aerobicMetric" id="aerobicMetric">
+            </div>
+
+            <!-- Weighting Fields -->
+            <div id="weightingFields" style="display: none;">
+                 <p>Weighting day means that there should be no other plans assigned for this day. Record the weight and rest.</p>
+            </div>
+
+            <!-- Resting Fields -->
+            <div id="restingFields" style="display: none;">
+                <p>Resting day means that there should definetly be no other plans. Just netflix and chill.</p>
+           </div>
+           <input type="button" id="saveNewPlan" value="Save new plan">
+        </div>
+        
+    </div>
+
+</div>
+    <script src="js/classes.js"></script>
+    <script src="js/script.js"></script>
+</body>
+</html>
