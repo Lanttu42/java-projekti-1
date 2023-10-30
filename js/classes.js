@@ -174,7 +174,12 @@ class TrainingPlan {
 
     // Tää antaa yksinkertaisesti numerona sen, kuinka monta mahdollisuutta on aikojen alusta ollut
     static getNumOfChanges() {
-        return localStorage.getItem('youhadyourchange');
+        const mahikset = localStorage.getItem('youhadyourchange');
+        if (isNaN(mahikset)) {
+            localStorage.setItem('youhadyourchange', 0);
+            return 0;
+        }
+        return parseInt(mahikset, 10);
     }
 
     // Tää lukee effortit (eli tallennetut "mä tein tän" plänin) ja .lenght kertoo montaks niitä oli.
