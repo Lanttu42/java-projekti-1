@@ -1,3 +1,18 @@
+/* 
+  ________  ___________  ________   
+ /"       )("     _   ")|"      "\  
+(:   \___/  )__/  \\__/ (.  ___  :) 
+ \___  \       \\_ /    |: \   ) || 
+  __/  \\      |.  |    (| (___\ || 
+ /" \   :)     \:  |    |:       :) 
+(_______/       \__|    (________/ 
+   Self   Training    Director     v.2.0
+
+classes.js
+script.js
+index.html
+*/
+
 
 // Nämä napit ovat käyttäjäeditoinnissa.
 const editButton = document.getElementById('editPersonal');

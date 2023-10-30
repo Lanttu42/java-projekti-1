@@ -11,6 +11,9 @@
    Self   Training    Director     v.2.0
 
 classes.js
+script.js
+index.html
+
 
 */
 
