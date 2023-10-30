@@ -26,3 +26,20 @@ External CSS and JavaScript:
 
 Data Persistence:
 - The information entered by the user should be stored locally in the browser, typically using the localStorage feature. This allows users to return to the website and access their recorded data even after closing the browser.
+
+# What I did
+Well... As usually, I started with a few lines of code, went to full mäyhem and almost missed the deadline. But here it is: Self Training Director, or STD as... short. What is the STD you might ask. Well. To put it in only a one sentence, it is personal training app, where you can add, edit or delete your wellness trainings. Yes. Absolutely nothing to do with school trainings, because I totally misunderstood the original assignment and "training" means bicycling or cross jumping for me. Not school stuff.
+
+# Security
+There Is No Security At all. Good God! Never, ever use Localstorage to store your application data like this app does. :D 
+
+# Usage
+- Begin your joyrney by adding some new Plans from Plan menu. You can do something normal like Bicycling or just add Rest-days like any normal people would do.
+- Now that you have some plans, you just need to open the app daily and check that you have done your choirs.
+- If you miss a day, the app will punish you by saying that you had X amount of changes.
+
+# Data issues
+If you need to correct data, just use inspector and edit the data.
+
+# "There is lots of unused code..."
+Yes. Sorry about that. Read again about the deadline. :D
