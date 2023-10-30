@@ -1,18 +1,19 @@
 
-// Tällä hallitaan käyttäjää
+// Nämä napit ovat käyttäjäeditoinnissa.
 const editButton = document.getElementById('editPersonal');
 const cancelEditButton = document.getElementById('cancelEdit');
 const saveEditButton = document.getElementById('saveEdit');
 // Tällä haetaan kaikki kentät, jotka liityy käyttäjän asetuksiin
 const userSettingInputs = document.querySelectorAll('.userSetting');
 
-// Harjoitteluohjelmien rakentamista
+// Sitten itse pihviin. 
 const planTypeSelect = document.getElementById('planType');
 const bodyBuildingFields = document.getElementById('bodyBuildingFields');
 const aerobicFields = document.getElementById('aerobicFields');
 const weightingFields = document.getElementById('weightingFields');
 const restingFields = document.getElementById('restingFields');
 
+// Kun uutta pläniä luodaan, niin modifioin formia sen mukaan, mitä on valittuna.
 planTypeSelect.addEventListener('change', function() {
     const selectedOption = planTypeSelect.value;
     
@@ -45,7 +46,7 @@ planTypeSelect.addEventListener('change', function() {
 });
 
 
-// Tehdään inputtikentille mäppäystä luokkia varten
+// Ehkä laiskuutta, mutta ehkä ehkä ei. index.html:ssä on eri kenttien nimet, joten mäppäsin ne.
 const fieldToPropertyMap = {
     setName: 'name',
     setTarget: 'targetWeight',
@@ -56,6 +57,7 @@ const fieldToPropertyMap = {
     setStartDate: 'startDate'
 };
 
+// Laitetaans napeille toiminnot clikkiin. (Tää on user profiilin editti)
 editButton.addEventListener('click', enableEdit);
 cancelEditButton.addEventListener('click', cancelEdit);
 saveEditButton.addEventListener('click', saveEdit);
@@ -90,7 +92,6 @@ function saveEdit() {
 
     // versio 2.0 - Nyt ei tarvii enää muuttaa tätä jos lisään kenttii! Wohou!
     updateUserAndSave();
-
     userSettingInputs.forEach(field => {
         field.setAttribute('disabled', 'true');
     });
@@ -191,8 +192,17 @@ document.getElementById('saveNewPlan').addEventListener('click', function() {
     } else {
         console.log("OK. Creating new Plan!");
         const uniqueId = generateUniqueId();
-        const latestPlan = new TrainingPlan(newname, weekDay, active, type, reps, sets, aerobicType, aerobicMetric, uniqueId);
-        latestPlan.saveToLocalStorage();
+        const latestPlan = new TrainingPlan({
+            name: newname,
+            weekDay: weekDay,
+            active: active,
+            type: type,
+            reps: reps,
+            sets: sets,
+            aerobicType: aerobicType,
+            aerobicMetric: aerobicMetric,
+            uniqueId: uniqueId});
+        latestPlan.saveThePlan();
         TrainingPlan.displayAllPlans();
         addEditPlanButtonClickListeners();
 
@@ -434,12 +444,13 @@ function addEditPlanButtonClickListeners() {
   }
 
 // Tällä tunnistetaan, että mitä käyttäjä just teki planeista ja mitkä siis on tehty.
+// Tämä on siis uniqueID ilman kirjastoja. :)
   function generateUniqueId() {
     const timestamp = new Date().getTime();
-    const randomValue = Math.floor(Math.random() * 10000); // Adjust the range as needed
-  
+    const randomValue = Math.floor(Math.random() * 10000); 
     return `${timestamp}-${randomValue}`;
   }
+
   // Laitetaan tehtävä merkatuksi, jos didit -buttonia klikataan.
   function deedsDoneClickListener() {
     doneButtons = document.querySelectorAll('.deeds');
@@ -455,7 +466,6 @@ function addEditPlanButtonClickListeners() {
       button.addEventListener('click', function () {
         if (isEffortDone(thisId)) {
             console.log("Uhm... Possible!");
-          // Effort was done, so unmark it
           const indexToRemove = efforts.findIndex(item => item === thisId);
           efforts.splice(indexToRemove, 1);
           localStorage.setItem('efforts', JSON.stringify(efforts));
@@ -473,7 +483,7 @@ function addEditPlanButtonClickListeners() {
         }
       });
   
-      // Set the initial value based on whether the effort is done
+      
       if (isEffortDone(thisId)) {
         button.textContent = 'I lied! Remove this!';
         button.style = "background-color: red";
@@ -504,11 +514,11 @@ function addEditPlanButtonClickListeners() {
          });
       }
 
-// Täytetään quickstatusta
+// Täytetään quickstatusta ja piirretää piechartti
 function freshstart() {
     const quickStatus = document.getElementById('quickstatus');
     const piirakka = document.getElementById('thatpie');
-    const myChanges = TrainingPlan.getChanges();
+    const myChanges = TrainingPlan.getNumOfChanges();
     const myEfforts = TrainingPlan.getEffortsCount();
     const mySuccess = myEfforts / myChanges * 100;
     quickStatus.innerHTML = "Possible Training days: "+myChanges+" Your efforts: "+myEfforts;
@@ -526,6 +536,7 @@ function thisday() {
     return today;
 }
 
+// Lets roll!
 TrainingPlan.displayAllPlans();
 addEditPlanButtonClickListeners();
 addDeletePlanButtonClickListeners();

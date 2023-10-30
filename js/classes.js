@@ -1,7 +1,24 @@
-// userData luokalla hallitaan käyttäjän asetuksia
+// Tämän piti alun perin olla trainingPlan classin oma tiedosto, mutta eihän ne
+// suunnitelmat pidä, ellei niitä edes yritä pitää.
+/* 
+  ________  ___________  ________   
+ /"       )("     _   ")|"      "\  
+(:   \___/  )__/  \\__/ (.  ___  :) 
+ \___  \       \\_ /    |: \   ) || 
+  __/  \\      |.  |    (| (___\ || 
+ /" \   :)     \:  |    |:       :) 
+(_______/       \__|    (________/ 
+   Self   Training    Director     v.2.0
+
+classes.js
+
+*/
+
+// userData luokalla hallitaan käyttäjän asetuksia / Tai oikeastaan siis luodaan käyttäjä, jos sitä ei ole.
 class UserData {
     constructor() {
         const storedData = localStorage.getItem('userData');
+        // Tarkistetaan. Jos ei saatu käyttäjää userDatasta niin sellanen sit kai tehdää.
         if (storedData) {
             this.data = JSON.parse(storedData);
         } else {
@@ -12,14 +29,15 @@ class UserData {
                 age: 42,
                 gender: 0,
                 currentWaist: 0,
-                startDate:  new Date().toISOString().split('T')[0]
+                // laitetaan tää päivä aloituspäiväksi. Treeni siis alkaa, kun eka kertaa avaa appin
+                startDate:  new Date().toISOString().split('T')[0] 
             };
-
+            // Yllä oleva data vielä tallennetaan.
             this.saveToLocalStorage();
         }
     }
 
-    // käytetään, kun halutaan käyttäjän tiedot localstoragesta
+    // käytetään, kun halutaan käyttäjän tiedot localstoragesta. Tätä käytetään tuolla koodin lopussa.
     loadFromLocalStorage() {
         const storedData = localStorage.getItem('userData');
         if (storedData) {
@@ -27,126 +45,149 @@ class UserData {
         }
     }
 
-    // Tallennus
+    // Tallennetaan tiedot. Yllättäen tässä kohtaa vielä mennään metodilla :)
     saveToLocalStorage() {
-        console.log("Tallentaa!!");
-        console.log(this.data);
         localStorage.setItem('userData', JSON.stringify(this.data));
-        const usernameFromLocalStorage = JSON.parse(localStorage.getItem('userData')).name;
-        console.log(`Tallennettu: ${usernameFromLocalStorage}`);
+        const saveduser = JSON.parse(localStorage.getItem('userData')).name;
+        console.log(`User data has been saved! ${saveduser}`);
     }
 
 }
-// Alustetaan käyttäjä
+
+// Alustetaan käyttäjä ja haetaan tiedot tai luodaan tiedot. 
 const userData = new UserData();
 
+
+// 
+//
 // TrainingPlan Class - Tällä huolletaan meidän treeniohjelmaa.
+// ToDo: 
+// Funkkareista metodeiksi? 
 class TrainingPlan {
-    constructor(name, weekDay, active, type, reps, sets, aerobicType, aerobicMetric, uniqueId) {
-        this.name = name;
-        this.weekDay = weekDay;
-        this.active = active;
-        this.type = type;
-        this.reps = reps;
-        this.sets = sets;
-        this.aerobicType = aerobicType;
-        this.aerobicMetric = aerobicMetric;
-        this.uniqueId = uniqueId;
-
-        const newchanges = JSON.parse(localStorage.getItem('changes')) || [0,0, 0, 0, 0, 0, 0]; // Ehkä tää olis kannattanut tehdä funkkarina...
-        console.log("Adding new change to "+this.weekDay);
-        newchanges[this.weekDay]++;
-
-        localStorage.setItem('changes', JSON.stringify(newchanges));
+    // Kun uusi pläni luodaan, niin se tehdään tällä. 
+    constructor(options) {
+        this.name = options.name || 'netflix & chill';
+        this.weekDay = options.weekDay || 0;
+        this.active = options.active || true;
+        this.type = options.type || 'rest';
+        this.reps = options.reps || 0;
+        this.sets = options.sets || 0;
+        this.aerobicType = options.aerobicType || ''; 
+        this.aerobicMetric = options.aerobicMetric || '';
+        this.uniqueId = options.uniqueId || '42';
+        
+        
+        // addSchedule lisää tämän treenin viikko-ohjelmaan, jotta voidaan laskea efforttia ja ohjelmia piecharttiin
+        TrainingPlan.addSchedule(this.weekDay);
         console.log("New plan created with uniqueID: "+this.uniqueId);
     }
 
-    // Add a method to save the plan to local storage
-    saveToLocalStorage() {
-        const plans = JSON.parse(localStorage.getItem('plans')) || [];
+    // Tätä käytetään script.js:ssä hieman erikoisesti. 
+    saveThePlan() {
+        const plans = TrainingPlan.getPlans();
         plans.push(this);
         console.log("Yes, this is saving?");
+        TrainingPlan.setPlans(plans);
+    }
+
+// Haetaan nyt olevat plänit tällä
+    static getPlans() {
+        return JSON.parse(localStorage.getItem('plans')) || [];
+    }
+// Asetetaan muutettu Plänikanta takaisin. 
+    static setPlans(plans) {
         localStorage.setItem('plans', JSON.stringify(plans));
     }
+// Haetaan viikkoaikataulu tällä. Palauttaa 0,0,0,0,0,0 jos viikkoaikataulua ei saatu.
+// Viikkoaikataulua tarvitaan, kun aletaan laskemaan paljonko tapahtumia on viikossa ja täten missattu.
+    static getSchedule() {
+        return JSON.parse(localStorage.getItem('changes')) || [0, 0, 0, 0, 0, 0, 0];
+    }
 
+// Ja sit laitetaan se aikataulu takas, jos sitä sormeillaan.
+// Viikkoaikataulua sormeilee mm. uuden planin luonti ja planien editointi.
+    static setSchedule(changes) {
+        localStorage.setItem('changes', JSON.stringify(changes));
+    }
 
+    // DeletePlan tuhoaa plänin. Tämä
     static deletePlan(index) {
-        const plans = JSON.parse(localStorage.getItem('plans')) || [];
+        const plans = TrainingPlan.getPlans();
         if (index >= 0 && index < plans.length) {
+            const theday = plans[index].weekDay;
+            console.log("Se oli "+theday);
+            this.delSchedule(theday);
             plans.splice(index, 1);
             localStorage.setItem('plans', JSON.stringify(plans));
-            console.log("PUM");
+            console.log("Sinne meni se pläni");
+            // Näytetään uudelleen kaikki pläänit, niin deletoitu poistuu.
             TrainingPlan.displayAllPlans();
-            addDeletePlanButtonClickListeners();
         }
     }
+
+
+
     
+
+    // PrevSync tallennetaan joka ajolla. Jos käyttäjä jättää useamman päivän välistä, 
+    // niin PrevSyncillä lasketaan tapahtumapäivien ero ja saadaan menetyt tsäänsit listattua.
     static prevSync() {
         const thisday = new Date();
         const prevday = localStorage.getItem('prevSync');
-        //let debug = new Date('2023-10-12'); // Debug - asetetaan tää päivä
         localStorage.setItem('prevSync', thisday.getTime());
-        //debug = debug.getTime();
-        //console.log("Palautan tän: "+debug);
         return prevday; 
-        //return debug;
     }
 
     static countChanges() {
+        // Haetaan tieto, kuinka monta mahista meillä on ollut tähän mennessä.
+        // Mahikset = suorituksia viikko-ohjelmassa.
+        // countChanges on oikeastaan aika pitkälti vain sen takia, että pieChart on olemassa.
         let total = localStorage.getItem('youhadyourchange');
-        //total = 42; // Resetoidaan mahdollisuudet DEBUG
-        console.log('total is: '+total);
         const thisday = new Date();
         const prevday = this.prevSync();
         console.log("Previous sync: "+prevday);
-        const mondayChanges = countWeekDays(thisday.getTime(), prevday, "Monday");
-        console.log("Since your last visit, you missed "+mondayChanges+" mondays");
-        const tuesdayChanges = countWeekDays(thisday.getTime(), prevday, "Tuesday");
-        console.log("Since your last visit, you missed "+tuesdayChanges+" tuesdays");
-        const wednesdayChanges = countWeekDays(thisday.getTime(), prevday, "Wednesday");
-        console.log("Since your last visit, you missed "+wednesdayChanges+"  wednesdays");
-        const thursdayChanges = countWeekDays(thisday.getTime(), prevday, "Thursday");
-        console.log("Since your last visit, you missed "+thursdayChanges+" thursdays");
-        const fridayChanges = countWeekDays(thisday.getTime(), prevday, "Friday");
-        console.log("Since your last visit, you missed "+fridayChanges+" fridays");
-        const saturdayChanges = countWeekDays(thisday.getTime(), prevday, "Saturday");
-        console.log("Since your last visit, you missed "+saturdayChanges+" saturdays");
-        const sundayChanges = countWeekDays(thisday.getTime(), prevday, "Sunday");
-        console.log("Since your last visit, you missed "+sundayChanges+" sundays");
-        let days = JSON.parse(localStorage.getItem('changes')) || [0,0, 0, 0, 0, 0, 0]; // Tässä kohtaa tavallaa toivon, ettei tuu tyhjää vastausta, mutta varaudutaan silti...
-        // Tässä pitääki laskee vaan ne päivät, joilloin on treeniä!
-        console.log("Your schedule has " + days[0] + "events on Mondays");
-        total = parseInt(total) + parseInt(days[0]) * parseInt(mondayChanges);
-        console.log("Your schedule has " + days[1] + "events on Tuesdays (Current total = " + total + ")");
-        total = parseInt(total) + parseInt(days[1]) * parseInt(tuesdayChanges);
-        console.log("Your schedule has " + days[2] + "events on Wednesdays (Current total = " + total + ")");
-        total = parseInt(total) + parseInt(days[2]) * parseInt(wednesdayChanges);
-        console.log("Your schedule has " + days[3] + "events on Thursdays (Current total = " + total + ")");
-        total = parseInt(total) + parseInt(days[3]) * parseInt(thursdayChanges);
-        console.log("Your schedule has " + days[4] + "events on Fridays (Current total = " + total + ")");
-        total = parseInt(total) +parseInt(days[4]) * parseInt(fridayChanges);
-        console.log("Your schedule has " + days[5] + "events on Saturdays (Current total = " + total + ")");
-        total = parseInt(total) + parseInt(days[5]) * parseInt(saturdayChanges);
-        console.log("Your schedule has " + days[6] + "events on Sundays (Current total = " + total + ")");
-        total = parseInt(total) + parseInt(days[6]) * parseInt(sundayChanges);
-        
-        console.log("Mahdollisuuksia oli nyt: " + total);
-        console.log("Torstain mahdollisuudet: " + days[6] + " torstaipäiviä oli: " + sundayChanges);
-        localStorage.setItem('youhadyourchange', parseInt(total));
 
+        // Haetaan tieto kuinka monta mitäkin päivää on harjoittelujen välissä.
+        // Eli jos tyyppi ei avaa appia viikkoon, niin lasketaan kuinka monta mitäkin päivää on ollut
+        // ja ...
+        const mondayChanges = countWeekDays(thisday.getTime(), prevday, "Monday");
+        const tuesdayChanges = countWeekDays(thisday.getTime(), prevday, "Tuesday");
+        const wednesdayChanges = countWeekDays(thisday.getTime(), prevday, "Wednesday");
+        const thursdayChanges = countWeekDays(thisday.getTime(), prevday, "Thursday");
+        const fridayChanges = countWeekDays(thisday.getTime(), prevday, "Friday");
+        const saturdayChanges = countWeekDays(thisday.getTime(), prevday, "Saturday");
+        const sundayChanges = countWeekDays(thisday.getTime(), prevday, "Sunday");
+        // ... haetaan viikko-ohjelma ...
+        let days = this.getSchedule();
+        // ... jotta voidaan laskea montako missattua treeniä tuohon väliin mahtus.
+        total = parseInt(total) + parseInt(days[0]) * parseInt(mondayChanges);
+        total = parseInt(total) + parseInt(days[1]) * parseInt(tuesdayChanges);
+        total = parseInt(total) + parseInt(days[2]) * parseInt(wednesdayChanges);
+        total = parseInt(total) + parseInt(days[3]) * parseInt(thursdayChanges);
+        total = parseInt(total) + parseInt(days[4]) * parseInt(fridayChanges);
+        total = parseInt(total) + parseInt(days[5]) * parseInt(saturdayChanges);
+        total = parseInt(total) + parseInt(days[6]) * parseInt(sundayChanges);
+        console.log("Mahdollisuuksia on nyt ollut: " + total);
+        // Lopulta muutetaan youhadyourchange[gorman...] localstorageen uusi arvo.
+        localStorage.setItem('youhadyourchange', parseInt(total));
     }
-    static getChanges() {
-        const numofChanges = localStorage.getItem('youhadyourchange');
-        return numofChanges;
+
+    // Tää antaa yksinkertaisesti numerona sen, kuinka monta mahdollisuutta on aikojen alusta ollut
+    static getNumOfChanges() {
+        return localStorage.getItem('youhadyourchange');
     }
+
+    // Tää lukee effortit (eli tallennetut "mä tein tän" plänin) ja .lenght kertoo montaks niitä oli.
+    // Yllättäen pieChart dataa.
     static getEffortsCount() {
         const efforts = JSON.parse(localStorage.getItem('efforts')) || [];
         return efforts.length;
     }
     
     // Tää palauttaa ne indexit, joissa on tämä päivä. Tällä siis lasketaan treenien määrät + helpotetaan päivähakua
+    /*  Ei käytössä enää, mutta tässä on hyvii juttui. En tuhoa viel.
     static workingHard(weekday) { 
-        const plans = JSON.parse(localStorage.getItem('plans')) || [];
+        const plans = this.getPlans();
         const todos = [];
         plans.forEach((plan, index) => {
             if (plan.weekDay == weekday) {
@@ -155,52 +196,54 @@ class TrainingPlan {
         });
         return todos;
     }
+    */ 
 
     static updatePlan(index, thisplan) {
         console.log("Saving Edited: "+index+": "+thisplan.name);
         const weekdayNames = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
-        const plans = JSON.parse(localStorage.getItem('plans')) || []; // Ehkä tää olis kannattanut tehdä funkkarina...
-        const changes = JSON.parse(localStorage.getItem('changes')) || [0,0, 0, 0, 0, 0, 0]; // Ehkä tää olis kannattanut tehdä funkkarina...
+        const plans = this.getPlans();
+        const changes = this.getSchedule();
         if (index >= 0 && index < plans.length) {
             const prevday = plans[index].weekDay; // Otetaan talteen tämän plänin aikaisempi schedule
             plans[index] = thisplan; // Päivitetään tämä pläni uudella datalla
             const newday = plans[index].weekDay; // Otetaan talteen tämän plänin uusi schedule
-            
-            changes[prevday]--; // Vähennetään yksi pläni pois aikaisemmalta päivältä
-            
-            if (changes[prevday] < 0) changes[prevday] = 0; // Double check, ettei menny miinukselle. ;)
-            changes[newday]++; // Lisätään uuteen päivään.
-            console.log(changes);
-            localStorage.setItem('plans', JSON.stringify(plans));
-            localStorage.setItem('changes', JSON.stringify(changes));
-            this.countChanges();
-            // Aijaaaa! Mä voin tallentaa suoraan tän hiton arrayn. No sinne sit vaan!
+            console.log("Calling for Updating day: "+newday);
+            this.delSchedule(prevday); // Vähennetään yksi pläni pois aikaisemmalta päivältä
+            this.addSchedule(newday); // Lisätään uuteen päivään.
+            this.setPlans(plans); // Päivitetään Plänit uudella versiolla.
+            this.countChanges(); // Lasketaan mahdollisuudet uudelleen, koska schedule muuttu.
             console.log(`Updated plan at index ${index}: ${JSON.stringify(thisplan)}`);
           } else {
             console.log(`Invalid index: ${index}`);
           }
 
     }
+
+    // Haetaan vain yhden plänin tiedot lomaketta varten (editti)
     static fetchPlanData(thisID) {
+        // thisID tulee kutsulta. Se saadaan kutsulle HTML napista, johon se on tungettu (kts. displaAllPlans)
         console.log("Looking for: "+thisID);
-        const plans = JSON.parse(localStorage.getItem('plans')) || [];
+        const plans = this.getPlans();
         const thePlan = plans[thisID];
-        // console.log("Found this: "+thePlan.name);
         return thePlan;
     }
-
+    // Tää on se taika. Näytetään siis tämän päivän eventit. Tässä kohtaa ollaan vielä etusivulla ja kutsussa 
+    // tulee mukana päivä, joka halutaan. Tää luuppaa plänien läpi ja ottaa ne joissa päivä mätsää.
     static showPlansByWeekday(weekday) {
-        const plans = JSON.parse(localStorage.getItem('plans')) || [];
+        const plans = this.getPlans();
+        // Divi johon nää tungetaan.
         const plansContainer = document.getElementById('doToday');
-        const weekdayNames = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
+        // Ja tyhjätää se, jos vaikka siellä olikin jotain.
         plansContainer.innerHTML = '';
+        // Tähän tulee plänien otsikko, joka määritellään funkkarin lopussa.
         const planHeader = document.getElementById('planHeader');
+        // Kuha laskis plänejä.
         let counter = 0;
-     
-        // Loop through each plan and display it if the weekday matches
+        
         plans.forEach((plan, index) => {
-                if ((plan.weekDay == weekday) && (plan.active)) {
-                const thisID = index;
+                if ((plan.weekDay == weekday) && (plan.active)) { // jos weekday täsmää ja pläni on aktive
+                    // Obs - == on syystä. Jos vaikka tyyppi ei täsmää, mutta muuten on sama.
+                
                 const planDiv = document.createElement('div');
                 planDiv.classList.add('todaysplans');
                 planDiv.innerHTML = `
@@ -208,29 +251,29 @@ class TrainingPlan {
                     ${plan.type === 'bodyBuilding' ? `How many: ${plan.reps}<br>Sets or acts: ${plan.sets}<br>` : ''}
                     ${plan.type === 'aerobic' ? `What to do: ${plan.aerobicType}<br>How to measure: ${plan.aerobicMetric}<br>` : ''}
                     <button class="deeds" data-plan-uniqueid="${plan.uniqueId}">Did or not?</button>
-
                 `;
                 counter++;
                 plansContainer.appendChild(planDiv);
             }
         });
+        // Ja lopuks tosiaan laitetaan otsikko sen mukaan, oliko löytöjä.
         if (counter > 0) {
             planHeader.innerHTML = "<h2>Your plans for Today</h2>";
         } else {
             planHeader.innerHTML = "<h2>Nothing to do!</h2><p>This might be a good thing, or a bad thing. It is up to you. This is not a rest-day so you can still choose! Or fix it and add a plan for today!</p>";
         }
+        // Löydöksien napit aktivoidaan. 
         deedsDoneClickListener();
     }
 
 
+    // Display All Plans on editorin toiminto. Plani editorissa näytetään kaikki pläänit.
     static displayAllPlans() {
-        const plans = JSON.parse(localStorage.getItem('plans')) || [];
+        const plans = this.getPlans();
         const plansContainer = document.getElementById('plansContainer');
+        // Käännetää numerona oleva päivä ihmisen kielelle tämän taulun avulla.
         const weekdayNames = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
         plansContainer.innerHTML = '';
-
-
-        // Loop through each plan and display it
         plans.forEach((plan, index) => {
             const thisID = index;
             const planDiv = document.createElement('div');
@@ -250,14 +293,34 @@ class TrainingPlan {
             `;
             plansContainer.appendChild(planDiv);
         });
+        // Lisätään vielä deletenapit.
+        addDeletePlanButtonClickListeners();
+    }
 
+    // add ja del Schedulet hallinnoi viikko-ohjelman ylläpitoa.
+    static addSchedule(day) {
+        console.log("Updating day: "+day);
+        const shed = this.getSchedule();
+        shed[day]++;
+        this.setSchedule(shed);
+    }
+
+    static delSchedule(day) {
+        console.log("Updating day: "+day);
+        const shed = this.getSchedule();
+        shed[day]--;
+        if (shed[day] < 0) {
+            shed[day] = 0;
+        }
+        this.setSchedule(shed);
     }
 }
 
 
 
 
-// Tällä funktiolla kirjoitetaan asetuskenttiin nykyiset datat.
+// Tällä funktiolla kirjoitetaan asetuskenttiin nykyiset datat. 
+// Minimum Viable Product lähti tästä koodista. :D Tätä käytetään tämän skritpin lopussa.
 function populateInputFields() {
     document.getElementById('setStartDate').value = userData.data.startDate;
     document.getElementById('setName').value = userData.data.name;
@@ -281,45 +344,22 @@ function isLocalStorageSupported() {
     }
 }
 
-// Get available storage space in bytes
-function getLocalStorageSpace() {
-    try {
-        if ('localStorage' in window && window['localStorage'] !== null) {
-            const usedSpace = JSON.stringify(localStorage).length;
-            const totalSpace = 5 * 1024 * 1024; // 5 MB (typical default limit)
-            const remainingSpace = totalSpace - usedSpace;
-            return { used: usedSpace, total: totalSpace, remaining: remainingSpace };
-        } else {
-            return null;
-        }
-    } catch (e) {
-        return null;
-    }
-}
-// Check if LocalStorage is supported and get available space
-const localStorageSupported = isLocalStorageSupported();
-const localStorageSpace = getLocalStorageSpace();
-
-console.log('LocalStorage Supported:', localStorageSupported);
-if (localStorageSupported) {
-    console.log('Used Storage Space:', localStorageSpace.used + ' bytes');
-    console.log('Total Storage Space:', localStorageSpace.total + ' bytes');
-    console.log('Remaining Storage Space:', localStorageSpace.remaining + ' bytes');
-}
-
 // Lasketaan kuinka monta mitäkin päivää oli synkkayksien välissä. 
 // Jos käyttäjä ajaa tätä ohjelmaa päivittäin, niin tää antaa yleensä vain yhden päivän, mutta jos 
 // käyttäjä jättää päiviä välistä, niin saadaan parempaa dataa jo...
+// Tää meinas hajottaa pienen ihmisen... :D
 function countWeekDays(syncDate, prevDate, needleDay) {
     const weekdays = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
     const needle = weekdays.indexOf(needleDay);
     const oneDay = 24 * 60 * 60 * 1000; // Yks päivä millisekuntteina.
     console.log(syncDate+" : "+prevDate+" : "+needleDay);
     let counts = 0;
+    // Asetetaan ajat ja nollataan niiden minuutit, jotta voidaan verrata järkevästi.
     let startDate = new Date(+prevDate);
     startDate.setHours(0, 0, 0, 0);
     let targetDate = new Date(+syncDate);
     targetDate.setHours(0, 0, 0, 0);
+    // Jep. Jos vertailu tapahtuu tasan samalla sekunnilla, on resulttina mäyhem.
     console.log(startDate);
     while (startDate < targetDate) {
         console.log("Uijui!");
@@ -328,6 +368,7 @@ function countWeekDays(syncDate, prevDate, needleDay) {
         }
       startDate.setTime(startDate.getTime() + oneDay);
     }
+    // Lopulta palautetaan kuinka monta needleday päivää tässä välissä oli.
     return counts;
   }
 
